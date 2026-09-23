@@ -1,0 +1,26 @@
+fastapi>=0.141.1
+uvicorn[standard]>=0.52.4
+sqlalchemy>=2.0.52
+pydantic[email]>=2.13.5
+bcrypt>=5.0.0
+python-jose[cryptography]>=3.5.0
+python-dotenv>=1.2.2
+python-multipart>=0.0.32
+cryptography>=46.0.6
+rapidfuzz>=3.9.0
+alembic>=1.13.0
+
+# Added for the multi-input layer (URL fetching, HTML text extraction, OCR):
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+pytesseract>=0.3.10
+Pillow>=10.0.0
+# pytesseract wraps the Tesseract OCR ENGINE, which is a separate system
+# binary, not a Python package — it must be installed via the OS package
+# manager, e.g.:
+#   Ubuntu/Debian: sudo apt install tesseract-ocr
+#   macOS:          brew install tesseract
+#   Windows:        https://github.com/UB-Mannheim/tesseract/wiki
+# Without this system binary installed, pytesseract calls will fail
+# with a "tesseract is not installed" error even though the Python
+# package itself is present.
