@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import AuthLayout from "../components/AuthLayout";
 import { api } from "../api/client";
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -25,23 +27,21 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout
-      eyebrow="Reset password"
-      title="Get a reset link"
+      eyebrow={t("auth.forgotEyebrow")}
+      title={t("auth.forgotTitle")}
       footer={
         <span>
-          <Link to="/login">Back to log in</Link>
+          <Link to="/login">{t("auth.backToLogin")}</Link>
         </span>
       }
     >
       {sent ? (
-        <div className="banner banner-safe">
-          If an account exists for that email, a reset link is on its way. Check your inbox.
-        </div>
+        <div className="banner banner-safe">{t("auth.resetLinkSent")}</div>
       ) : (
         <form onSubmit={handleSubmit} noValidate>
           {error && <div className="banner banner-risk">{error}</div>}
           <div className="field">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t("auth.email")}</label>
             <input
               id="email"
               type="email"
@@ -52,7 +52,7 @@ export default function ForgotPassword() {
             />
           </div>
           <button className="btn btn-pen btn-block" type="submit" disabled={submitting}>
-            {submitting ? "Sending…" : "Send reset link"}
+            {submitting ? t("auth.sending") : t("auth.sendResetLink")}
           </button>
         </form>
       )}

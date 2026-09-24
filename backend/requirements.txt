@@ -16,7 +16,7 @@ requests>=2.31.0
 beautifulsoup4>=4.12.0
 pytesseract>=0.3.10
 Pillow>=10.0.0
-# pytesseract wraps the Tesseract OCR ENGINE, which is a separate system
+# pytesseract wraps the Tesseract OCR engine, which is a separate system
 # binary, not a Python package — it must be installed via the OS package
 # manager, e.g.:
 #   Ubuntu/Debian: sudo apt install tesseract-ocr
@@ -25,3 +25,46 @@ Pillow>=10.0.0
 # Without this system binary installed, pytesseract calls will fail
 # with a "tesseract is not installed" error even though the Python
 # package itself is present.
+
+# Added for speech-to-text (spoken audio input mode):
+SpeechRecognition>=3.10.0
+# pocketsphinx is COMMENTED OUT BY DEFAULT — it needs to compile C code
+# at install time, which fails on Windows unless Microsoft's C++ Build
+# Tools are installed (a multi-GB download most machines won't have:
+# https://visualstudio.microsoft.com/visual-cpp-build-tools/, check
+# "Desktop development with C++"). Without it, `pip install -r
+# requirements.txt` fails entirely for everyone, even those who don't
+# need speech-to-text. Uncomment the line below ONLY if you've
+# installed the Build Tools (Windows) or are on Linux/macOS, where it
+# installs without any extra setup:
+# pocketsphinx>=5.0.0
+#
+# With this line commented out, POST /checks/from-audio will fail at
+# runtime with an import error — every other endpoint (text, URL,
+# image input, TTS, auth, admin) is completely unaffected.
+#
+# pocketsphinx is a fully local/offline speech recognition engine — no
+# external API call. Its accuracy is meaningfully lower than a modern
+# neural model (see app/stt.py's module docstring for specifics found
+# during testing); swapping to openai-whisper is a worthwhile upgrade
+# if disk space allows (Whisper + its dependencies need several GB).
+
+# Added for text-to-speech (spoken verdict output, accessibility):
+# app/tts.py calls the espeak-ng SYSTEM BINARY via subprocess — no
+# additional Python package is required, but espeak-ng itself must be
+# installed via the OS package manager:
+#   Ubuntu/Debian: sudo apt install espeak-ng
+#   macOS:          brew install espeak-ng
+#   Windows:        https://github.com/espeak-ng/espeak-ng/releases
+# Without this system binary installed, GET /checks/{id}/speak will
+# return a 503 error.
+
+# Added for multilingual support (English/French/Kreol Morisyen
+# language detection, used by app/language_detector.py to pick the
+# right indicator-keyword set per message):
+langdetect>=1.0.9
+# langdetect alone cannot distinguish Kreol Morisyen from French (it
+# has no trained category for Kreol at all — confirmed directly during
+# development). app/language_detector.py adds a targeted Kreol
+# marker-word check on top of it; see that module's docstring for
+# specifics.

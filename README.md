@@ -34,7 +34,7 @@ Backend: built and tested (107/107 automated tests passing). Auth/security, the 
 
 AI layer: intentionally not yet built — the registry and indicator layers already produce real, useful, explained verdicts entirely on their own. Local-only by design (no hosted APIs) for privacy and demo reliability — see "AI integration point" below.
 
-Frontend: in `frontend/` — a Vite + React client (see `frontend/README.md`).
+Frontend: being built in parallel by a separate team member.
 
 ---
 
@@ -125,7 +125,7 @@ pip install pytest --break-system-packages
 pytest
 ```
 
-190 tests, fully offline, no external network calls, across sixteen files. Beyond the entity-matcher and registry-data files described below, dedicated suites also cover: `test_url_fetcher.py` (SSRF protection for the URL-input mode), `test_ocr.py` (image-to-text extraction), `test_multi_input.py` (text/URL/image all converging on the same pipeline), `test_domain_analyzer.py` and `test_phone_analyzer.py` (lookalike-domain and mismatched-phone-number detection), `test_feedback.py` (the correct/incorrect verdict feedback loop), and `test_repeat_sender.py` (per-user history of past checks on the same claimed sender).
+225 tests, fully offline (a handful of STT tests skip automatically if espeak-ng isn't installed, since they need it to generate real test audio, not because the STT feature itself needs network access), across twenty files. Beyond the entity-matcher and registry-data files described below, dedicated suites also cover: `test_url_fetcher.py` (SSRF protection for the URL-input mode), `test_ocr.py` (image-to-text extraction), `test_stt.py` and `test_audio_input.py` (speech-to-text, using real synthesized audio), `test_multi_input.py` (text/URL/image all converging on the same pipeline), `test_domain_analyzer.py` and `test_phone_analyzer.py` (lookalike-domain and mismatched-phone-number detection), `test_feedback.py` (the correct/incorrect verdict feedback loop), `test_repeat_sender.py` (per-user history of past checks on the same claimed sender), `test_checks_summary.py` (the dashboard rollup endpoint), and `test_export.py` (CSV export of a user's own check history).
 
 - `test_entity_matcher.py` / `test_real_registry_data.py` — the matching algorithm and its behavior against real Bank of Mauritius and FSC data. Between them, these two files caught and fixed six real bugs during development:
 
@@ -153,8 +153,14 @@ All six are now permanent regression tests.
 - `POST /auth/verify-email/confirm`, `POST /auth/verify-email/resend`
 - `GET/POST/DELETE /settings/api-key`, `GET /settings/audit-log`
 - `POST /settings/revoke-sessions`, `POST /settings/change-password`, `POST /settings/delete-account`
-- `POST /checks/` - submit a message plus claimed sender, get back a registry-checked verdict. Pass `save_check: false` to get the analysis without it being persisted. Rate-limited to 20 requests per 5 minutes per user.
+- `POST /checks/` - submit a message, a URL to fetch, plus optionally a claimed sender, get back a registry-checked verdict. Pass `save_check: false` to get the analysis without it being persisted. Rate-limited to 20 requests per 5 minutes per user.
+- `POST /checks/from-image` - the same, but from an uploaded screenshot (OCR-extracted locally)
+- `POST /checks/from-audio` - the same, but from an uploaded audio clip (transcribed locally — see "Known limitations" for accuracy caveats)
 - `GET /checks/`, `GET /checks/{id}` - list/retrieve past checks (own only, per-user isolated)
+- `GET /checks/summary` - a dashboard rollup: total checks by verdict, feedback given, most-checked senders
+- `GET /checks/export` - download a user's own check history as CSV
+- `POST /checks/{id}/feedback` - mark a past verdict as correct or incorrect
+- `GET /checks/{id}/speak` - a spoken-audio (WAV) version of a check's verdict, for accessibility (local espeak-ng TTS, verdict-first phrasing)
 - `GET /health`
 
 ## AI integration point
@@ -190,11 +196,15 @@ FraudLens is a verification and assistance tool, not a guarantee that a message 
 
 ## Known limitations (honest, by design for a 3-day build)
 
+- Speech-to-text uses CMU Sphinx (fully local/offline), not a modern neural model like Whisper — Whisper's dependencies (PyTorch and its model files) need several GB, which was not available in this development environment. Sphinx's accuracy is meaningfully lower, confirmed directly: a test phrase's brand name was transcribed entirely wrong, and pure silence was once hallucinated into a word. Every `/checks/from-audio` result carries an explicit caveat because of this — see `app/stt.py`'s module docstring for the full detail. Swapping to Whisper is a straightforward upgrade if disk space allows; the module's interface was designed so that swap wouldn't require changing anything else in the pipeline.
+- Text-to-speech (`/checks/{id}/speak`) uses espeak-ng, a fully local, offline TTS engine — intelligible but synthetic/robotic-sounding compared to a modern neural voice. A real, audible quality tradeoff for staying fully local and dependency-light, not hidden or presented as production-polish audio.
+
 - Known official domains and phone numbers (used by the domain and phone mismatch checks) are small, hand-curated tables covering a handful of major institutions, not exhaustive coverage. One phone number in this table was found during testing to be both a data-entry typo AND, once corrected, still unsourced/fabricated — it was removed rather than guessed at again. Every remaining entry is tied to a real, checkable source citation.
 
 - Registry snapshot is a hand-curated, real, sourced set of well-known entities across Bank of Mauritius's participant list (banks, leasing, insurance, microfinance, P2P, utility bodies) and FSC-licensed investment dealers/forex brokers — not a scrape of either regulator's full register, which runs to hundreds of entries across many license categories. Entries and known aliases are added as specific real-world cases are found; see `app/registry_data.py`'s comments for exactly what's covered and why each entry was chosen.
 - Registry data is a periodically-synced snapshot, not a live query against the source sites — appropriate for demo reliability, but needs a real refresh cadence in any actual deployment.
 - The `revoked` registry status (a real, sourced fact about a specific entity's license having been surrendered or revoked) is currently only reflected in the free-text explanation shown to the user — the structured detail isn't yet its own field on the stored `Check` record or `CheckOut` response, so it can't be filtered/queried on independently. A reasonable next addition, not done here to avoid a mid-hackathon schema migration for a single field.
+- No frontend yet — being built in parallel by a separate team member.
 - No AI/local model layer yet — see "AI integration point" above; the deterministic registry and indicator layers are complete and already produce real, useful verdicts on their own.
 - PII scrubbing is regex-based pattern detection for common, structurally-recognizable identifiers (OTP-shaped codes, card numbers, phone numbers, emails) — not a general PII-detection model, and not a guarantee every form of sensitive data is caught. `save_check: false` remains the stronger guarantee for a message a user knows contains something specific they don't want stored at all.
 - Email verification and password reset both log their tokens/links server-side rather than sending real email, since no email provider is configured — clearly labeled in logs as a stand-in, not a real send.

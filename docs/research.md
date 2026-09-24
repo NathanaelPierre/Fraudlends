@@ -1,6 +1,6 @@
 # Research: Mauritius Fintech Fraud
 
-Compiled during the Finnovate Hackathon 2026, used to ground FraudLens AI's problem statement and design decisions in real, current, sourced facts rather than generic assumptions.
+Compiled ahead of and during the Finnovate Hackathon 2026, used to ground FraudLens AI's problem statement and design decisions in real, current, sourced facts rather than generic assumptions.
 
 ## The core framing
 

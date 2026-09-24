@@ -118,3 +118,63 @@ def test_extraction_is_a_pure_function():
     result2 = extract_indicators(text)
     assert result1.flags == result2.flags
     assert result1.urls == result2.urls
+
+
+# ---------------------------------------------------------------------------
+# Multilingual: French and Kreol indicator detection
+# ---------------------------------------------------------------------------
+
+def test_detected_language_is_populated_on_result():
+    result = extract_indicators("Your OTP is 483921")
+    assert result.detected_language == "en"
+
+
+def test_french_otp_notice_does_not_flag():
+    """Mirrors the English OTP-notice-vs-request distinction: a bare
+    French OTP notice must not be flagged as a request."""
+    result = extract_indicators("Votre code de vérification est 483921")
+    assert result.requests_otp is False
+    assert result.detected_language == "fr"
+
+
+def test_french_otp_request_flags():
+    result = extract_indicators("Veuillez envoyer votre OTP pour confirmer")
+    assert result.requests_otp is True
+    assert result.detected_language == "fr"
+
+
+def test_french_urgency_flags():
+    result = extract_indicators("URGENT: votre compte sera suspendu dans 24 heures")
+    assert result.creates_urgency is True
+    assert result.detected_language == "fr"
+
+
+def test_french_investment_promise_flags():
+    result = extract_indicators("Rendements garantis avec cette opportunité d'investissement")
+    assert result.mentions_investment_returns is True
+
+
+def test_kreol_otp_request_flags():
+    result = extract_indicators("Anvoy OTP-la pou konfirm")
+    assert result.requests_otp is True
+    assert result.detected_language == "cr"
+
+
+def test_kreol_urgency_flags():
+    result = extract_indicators("Irzan: kont ou pou sispann dan 24 er")
+    assert result.creates_urgency is True
+    assert result.detected_language == "cr"
+
+
+def test_kreol_card_details_request_flags():
+    result = extract_indicators("Bizin nimero kart ou pou konfirm")
+    assert result.requests_card_details is True
+
+
+def test_english_message_still_uses_english_patterns_unaffected():
+    """The multilingual restructure must not change any existing
+    English behavior — this mirrors an already-covered case as a
+    direct confirmation post-refactor."""
+    result = extract_indicators("Your OTP is 483921. Do not share with anyone.")
+    assert result.requests_otp is False
+    assert result.detected_language == "en"

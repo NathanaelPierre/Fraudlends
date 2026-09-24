@@ -1,11 +1,15 @@
-const STAMP_COPY = {
-  safe: { word: "Verified", tone: "safe", rotate: -3 },
-  suspicious: { word: "Unverified", tone: "caution", rotate: 2 },
-  high_risk: { word: "High risk", tone: "risk", rotate: -2 },
+import { useTranslation } from "react-i18next";
+
+const STAMP_TONE = {
+  safe: { tone: "safe", rotate: -3 },
+  suspicious: { tone: "caution", rotate: 2 },
+  high_risk: { tone: "risk", rotate: -2 },
 };
 
 export default function VerdictStamp({ verdict, stampKey }) {
-  const copy = STAMP_COPY[verdict] || STAMP_COPY.suspicious;
+  const { t } = useTranslation();
+  const copy = STAMP_TONE[verdict] || STAMP_TONE.suspicious;
+  const word = t(`verdict.${verdict}`, t("verdict.suspicious"));
 
   return (
     <div
@@ -14,7 +18,7 @@ export default function VerdictStamp({ verdict, stampKey }) {
       style={{ "--stamp-rotate": `${copy.rotate}deg` }}
       role="status"
     >
-      <span className="verdict-stamp-word">{copy.word}</span>
+      <span className="verdict-stamp-word">{word}</span>
     </div>
   );
 }

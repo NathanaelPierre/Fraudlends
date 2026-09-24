@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
@@ -16,6 +17,7 @@ function Section({ title, description, children }) {
 }
 
 export default function Settings() {
+  const { t } = useTranslation();
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -48,7 +50,7 @@ export default function Settings() {
       const status = await api.saveApiKey(apiKeyInput);
       setApiKeyStatus(status);
       setApiKeyInput("");
-      setApiKeyMsg("Saved.");
+      setApiKeyMsg(t("settings.keySaved"));
     } catch (err) {
       setApiKeyMsg(err.message);
     }
@@ -58,7 +60,7 @@ export default function Settings() {
     try {
       const status = await api.deleteApiKey();
       setApiKeyStatus(status);
-      setApiKeyMsg("Removed.");
+      setApiKeyMsg(t("settings.keyRemoved"));
     } catch (err) {
       setApiKeyMsg(err.message);
     }
@@ -115,26 +117,23 @@ export default function Settings() {
   return (
     <>
       <div className="page-head">
-        <h1>Settings</h1>
-        <p>Manage your account, sessions, and stored data.</p>
+        <h1>{t("settings.title")}</h1>
+        <p>{t("settings.intro")}</p>
       </div>
 
-      <Section
-        title="AI provider key"
-        description="Optional, for when the AI language-pattern layer is wired in. Stored encrypted; never shown again in full."
-      >
+      <Section title={t("settings.aiKeyTitle")} description={t("settings.aiKeyDesc")}>
         {apiKeyStatus?.is_set ? (
           <div className="key-status-row">
             <span className="mono-text">{apiKeyStatus.masked_key}</span>
             <button className="btn btn-ghost" type="button" onClick={handleDeleteKey}>
-              Remove key
+              {t("settings.removeKey")}
             </button>
           </div>
         ) : (
           <form onSubmit={handleSaveKey} className="inline-form">
             <input
               type="password"
-              placeholder="Paste your API key"
+              placeholder={t("settings.keyPlaceholder")}
               value={apiKeyInput}
               onChange={(e) => setApiKeyInput(e.target.value)}
               minLength={10}
@@ -142,19 +141,19 @@ export default function Settings() {
               required
             />
             <button className="btn btn-pen" type="submit">
-              Save key
+              {t("settings.saveKey")}
             </button>
           </form>
         )}
         {apiKeyMsg && <p className="hint" style={{ marginTop: 8 }}>{apiKeyMsg}</p>}
       </Section>
 
-      <Section title="Change password">
+      <Section title={t("settings.changePasswordTitle")}>
         <form onSubmit={handleChangePassword}>
           {passwordErr && <div className="banner banner-risk">{passwordErr}</div>}
           {passwordMsg && <div className="banner banner-safe">{passwordMsg}</div>}
           <div className="field">
-            <label htmlFor="current-password">Current password</label>
+            <label htmlFor="current-password">{t("settings.currentPassword")}</label>
             <input
               id="current-password"
               type="password"
@@ -164,7 +163,7 @@ export default function Settings() {
             />
           </div>
           <div className="field">
-            <label htmlFor="new-password">New password</label>
+            <label htmlFor="new-password">{t("settings.newPassword")}</label>
             <input
               id="new-password"
               type="password"
@@ -175,24 +174,21 @@ export default function Settings() {
             />
           </div>
           <button className="btn btn-pen" type="submit">
-            Update password
+            {t("settings.updatePassword")}
           </button>
         </form>
       </Section>
 
-      <Section
-        title="Sessions"
-        description="Sign every device with a token for your account out at once, including this one."
-      >
+      <Section title={t("settings.sessionsTitle")} description={t("settings.sessionsDesc")}>
         {sessionMsg && <p className="hint" style={{ marginBottom: 10 }}>{sessionMsg}</p>}
         <button className="btn btn-ghost" type="button" onClick={handleRevoke}>
-          Log out everywhere
+          {t("settings.logoutEverywhere")}
         </button>
       </Section>
 
-      <Section title="Recent account activity">
+      <Section title={t("settings.activityTitle")}>
         {auditLog.length === 0 ? (
-          <p className="hint">Nothing logged yet.</p>
+          <p className="hint">{t("settings.noActivity")}</p>
         ) : (
           <ul className="audit-list">
             {auditLog.map((entry) => (
@@ -205,15 +201,12 @@ export default function Settings() {
         )}
       </Section>
 
-      <Section
-        title="Delete account"
-        description="Permanently deletes your account, saved checks, and activity log. This can't be undone."
-      >
+      <Section title={t("settings.deleteTitle")} description={t("settings.deleteDesc")}>
         <form onSubmit={handleDeleteAccount}>
           {deleteErr && <div className="banner banner-risk">{deleteErr}</div>}
           {confirmingDelete && (
             <div className="field">
-              <label htmlFor="delete-password">Confirm your password</label>
+              <label htmlFor="delete-password">{t("settings.confirmPassword")}</label>
               <input
                 id="delete-password"
                 type="password"
@@ -225,7 +218,7 @@ export default function Settings() {
             </div>
           )}
           <button className="btn btn-risk" type="submit">
-            {confirmingDelete ? "Permanently delete account" : "Delete account"}
+            {confirmingDelete ? t("settings.deletePermanently") : t("settings.deleteAccount")}
           </button>
           {confirmingDelete && (
             <button
@@ -234,7 +227,7 @@ export default function Settings() {
               style={{ marginLeft: 8 }}
               onClick={() => setConfirmingDelete(false)}
             >
-              Cancel
+              {t("settings.cancel")}
             </button>
           )}
         </form>

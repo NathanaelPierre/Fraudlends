@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import AuthLayout from "../components/AuthLayout";
 import PasswordField from "../components/PasswordField";
 import { useAuth } from "../context/AuthContext";
 
 export default function Signup() {
+  const { t } = useTranslation();
   const { signup } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -20,11 +22,11 @@ export default function Signup() {
     setConfirmError("");
 
     if (password.length < 8) {
-      setError("Your password needs at least 8 characters.");
+      setError(t("auth.passwordMinLength"));
       return;
     }
     if (password !== confirmPassword) {
-      setConfirmError("Passwords don't match.");
+      setConfirmError(t("auth.passwordsDontMatch"));
       return;
     }
 
@@ -41,11 +43,11 @@ export default function Signup() {
 
   return (
     <AuthLayout
-      eyebrow="Create account"
-      title="Set up your CipherLab account"
+      eyebrow={t("auth.signupEyebrow")}
+      title={t("auth.signupTitle")}
       footer={
         <span>
-          Already have an account? <Link to="/login">Log in</Link>
+          {t("auth.alreadyHaveAccount")} <Link to="/login">{t("auth.login")}</Link>
         </span>
       }
     >
@@ -53,7 +55,7 @@ export default function Signup() {
         {error && <div className="banner banner-risk">{error}</div>}
 
         <div className="field">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">{t("auth.email")}</label>
           <input
             id="email"
             type="email"
@@ -66,7 +68,7 @@ export default function Signup() {
 
         <PasswordField
           id="password"
-          label="Password"
+          label={t("auth.password")}
           value={password}
           onChange={(e) => {
             setPassword(e.target.value);
@@ -75,12 +77,12 @@ export default function Signup() {
           autoComplete="new-password"
           required
           minLength={8}
-          hint="At least 8 characters."
+          hint={t("auth.atLeast8Chars")}
         />
 
         <PasswordField
           id="confirm_password"
-          label="Confirm password"
+          label={t("auth.confirmPassword")}
           value={confirmPassword}
           onChange={(e) => {
             setConfirmPassword(e.target.value);
@@ -90,11 +92,11 @@ export default function Signup() {
           required
           minLength={8}
           error={confirmError}
-          hint="Re-enter the same password."
+          hint={t("auth.reenterPassword")}
         />
 
         <button className="btn btn-pen btn-block" type="submit" disabled={submitting}>
-          {submitting ? "Creating account…" : "Create account"}
+          {submitting ? t("auth.creatingAccount") : t("auth.createAccountBtn")}
         </button>
       </form>
     </AuthLayout>

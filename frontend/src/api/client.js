@@ -85,12 +85,49 @@ export const api = {
 
   // checks
   createCheck: (payload) => request("/checks/", { method: "POST", body: payload }),
+  createCheckFromImage: (file, { claimedSender, saveCheck = true } = {}) => {
+    const form = new FormData();
+    form.append("image", file);
+    if (claimedSender) form.append("claimed_sender", claimedSender);
+    form.append("save_check", String(saveCheck));
+    return request("/checks/from-image", { method: "POST", body: form, form: true });
+  },
+  createCheckFromAudio: (file, { claimedSender, saveCheck = true } = {}) => {
+    const form = new FormData();
+    form.append("audio", file);
+    if (claimedSender) form.append("claimed_sender", claimedSender);
+    form.append("save_check", String(saveCheck));
+    return request("/checks/from-audio", { method: "POST", body: form, form: true });
+  },
   listChecks: ({ limit = 20, offset = 0, verdict } = {}) => {
     const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
     if (verdict) params.set("verdict", verdict);
     return request(`/checks/?${params.toString()}`);
   },
   getCheck: (id) => request(`/checks/${id}`),
+  submitCheckFeedback: (id, isCorrect) =>
+    request(`/checks/${id}/feedback`, { method: "POST", body: { is_correct: isCorrect } }),
+  getChecksSummary: () => request("/checks/summary"),
+  // CSV export triggers a real browser download rather than returning
+  // JSON — fetched with the auth header manually (the plain `request`
+  // helper always parses the response as JSON/text, which would mangle
+  // the CSV), then handed to the browser as a Blob download.
+  exportChecksCsv: async () => {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}/checks/export`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new ApiError(`Export failed (${res.status}).`, res.status);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "fraudlens_checks_export.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  },
 
   // settings
   getApiKeyStatus: () => request("/settings/api-key"),

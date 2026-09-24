@@ -5,11 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 from app.database import Base, engine
-from app.migrations import run_startup_migrations
-from app.routers import auth, settings, checks, admin
+from app.routers import auth, settings, checks, admin, education
 from app.security_headers import SecurityHeadersMiddleware
 from app.error_handling import unhandled_exception_handler
 from app.body_size_limit import BodySizeLimitMiddleware
+from app.migrations import run_startup_migrations
 from app.event_bus import bus
 
 load_dotenv()
@@ -26,6 +26,7 @@ async def _bind_event_bus_loop():
     # request-handler threads can safely hand events to SSE subscribers
     # living on this loop.
     bus.bind_loop(asyncio.get_running_loop())
+
 
 app.add_exception_handler(Exception, unhandled_exception_handler)
 app.add_middleware(BodySizeLimitMiddleware)
@@ -44,6 +45,7 @@ app.include_router(auth.router)
 app.include_router(settings.router)
 app.include_router(checks.router)
 app.include_router(admin.router)
+app.include_router(education.router)
 
 
 @app.get("/")

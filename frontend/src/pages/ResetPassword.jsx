@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import AuthLayout from "../components/AuthLayout";
 import { api } from "../api/client";
 
 export default function ResetPassword() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") || "";
   const navigate = useNavigate();
@@ -16,7 +18,7 @@ export default function ResetPassword() {
     e.preventDefault();
     setError("");
     if (!token) {
-      setError("This link is missing its reset token. Request a new one.");
+      setError(t("auth.resetTokenMissing"));
       return;
     }
     setSubmitting(true);
@@ -33,21 +35,21 @@ export default function ResetPassword() {
 
   return (
     <AuthLayout
-      eyebrow="Reset password"
-      title="Choose a new password"
+      eyebrow={t("auth.resetEyebrow")}
+      title={t("auth.resetTitle")}
       footer={
         <span>
-          <Link to="/login">Back to log in</Link>
+          <Link to="/login">{t("auth.backToLogin")}</Link>
         </span>
       }
     >
       {done ? (
-        <div className="banner banner-safe">Password updated. Taking you to log in…</div>
+        <div className="banner banner-safe">{t("auth.passwordUpdated")}</div>
       ) : (
         <form onSubmit={handleSubmit} noValidate>
           {error && <div className="banner banner-risk">{error}</div>}
           <div className="field">
-            <label htmlFor="password">New password</label>
+            <label htmlFor="password">{t("auth.newPassword")}</label>
             <input
               id="password"
               type="password"
@@ -57,10 +59,10 @@ export default function ResetPassword() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <span className="hint">At least 8 characters.</span>
+            <span className="hint">{t("auth.atLeast8Chars")}</span>
           </div>
           <button className="btn btn-pen btn-block" type="submit" disabled={submitting}>
-            {submitting ? "Updating…" : "Update password"}
+            {submitting ? t("auth.updating") : t("auth.updatePassword")}
           </button>
         </form>
       )}

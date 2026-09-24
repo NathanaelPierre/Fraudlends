@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import AuthLayout from "../components/AuthLayout";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,15 +32,15 @@ export default function Login() {
 
   return (
     <AuthLayout
-      eyebrow="Log in"
-      title="Check a message before you act on it"
+      eyebrow={t("auth.loginEyebrow")}
+      title={t("auth.loginTitle")}
       footer={
         <>
           <span>
-            New here? <Link to="/signup">Create an account</Link>
+            {t("auth.newHere")} <Link to="/signup">{t("auth.createAccount")}</Link>
           </span>
           <span>
-            <Link to="/forgot-password">Forgot your password?</Link>
+            <Link to="/forgot-password">{t("auth.forgotPassword")}</Link>
           </span>
         </>
       }
@@ -47,7 +49,7 @@ export default function Login() {
         {error && <div className="banner banner-risk">{error}</div>}
 
         <div className="field">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">{t("auth.email")}</label>
           <input
             id="email"
             type="email"
@@ -59,7 +61,7 @@ export default function Login() {
         </div>
 
         <div className="field">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">{t("auth.password")}</label>
           <input
             id="password"
             type="password"
@@ -71,7 +73,7 @@ export default function Login() {
         </div>
 
         <button className="btn btn-pen btn-block" type="submit" disabled={submitting}>
-          {submitting ? "Logging in…" : "Log in"}
+          {submitting ? t("auth.loggingIn") : t("auth.login")}
         </button>
       </form>
     </AuthLayout>

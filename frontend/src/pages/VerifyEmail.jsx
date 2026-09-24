@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import AuthLayout from "../components/AuthLayout";
 import { api } from "../api/client";
 
 export default function VerifyEmail() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") || "";
   const [status, setStatus] = useState(token ? "checking" : "missing");
@@ -34,31 +36,29 @@ export default function VerifyEmail() {
 
   return (
     <AuthLayout
-      eyebrow="Email verification"
-      title="Confirming your email"
+      eyebrow={t("auth.verifyEyebrow")}
+      title={t("auth.verifyTitle")}
       footer={
         <span>
-          <Link to="/app">Go to CipherLab</Link>
+          <Link to="/app">{t("auth.goToApp")}</Link>
         </span>
       }
     >
-      {status === "checking" && <p>Confirming your link…</p>}
+      {status === "checking" && <p>{t("auth.confirmingLink")}</p>}
 
       {status === "verified" && (
-        <div className="banner banner-safe">Your email is verified.</div>
+        <div className="banner banner-safe">{t("auth.emailVerified")}</div>
       )}
 
       {(status === "failed" || status === "missing") && (
         <>
           <div className="banner banner-risk">
-            {status === "missing"
-              ? "This page needs a verification link with a token."
-              : error}
+            {status === "missing" ? t("auth.verifyLinkMissing") : error}
           </div>
           {!resent ? (
             <form onSubmit={handleResend} noValidate>
               <div className="field">
-                <label htmlFor="resend-email">Resend the link to</label>
+                <label htmlFor="resend-email">{t("auth.resendTo")}</label>
                 <input
                   id="resend-email"
                   type="email"
@@ -68,11 +68,11 @@ export default function VerifyEmail() {
                 />
               </div>
               <button className="btn btn-pen btn-block" type="submit">
-                Resend verification email
+                {t("auth.resendVerification")}
               </button>
             </form>
           ) : (
-            <p className="hint">If that account exists and isn't verified, a new link is on its way.</p>
+            <p className="hint">{t("auth.resendSent")}</p>
           )}
         </>
       )}

@@ -1,11 +1,14 @@
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const TABS = [
-  { to: "/app", label: "Home", end: true, icon: "home" },
-  { to: "/community", label: "Community", icon: "community" },
-  { to: "/history", label: "History", icon: "history" },
-  { to: "/settings", label: "Settings", icon: "settings" },
+  { to: "/app", labelKey: "nav.home", end: true, icon: "home" },
+  { to: "/community", labelKey: "nav.community", icon: "community" },
+  { to: "/history", labelKey: "nav.history", icon: "history" },
+  { to: "/insights", labelKey: "nav.insights", icon: "insights" },
+  { to: "/settings", labelKey: "nav.settings", icon: "settings" },
 ];
 
 const ICONS = {
@@ -21,6 +24,9 @@ const ICONS = {
   settings: (
     <path d="m19.4 13-1.6-1a6.9 6.9 0 0 0 0-2l1.6-1a1 1 0 0 0 .4-1.3l-1.6-2.8a1 1 0 0 0-1.2-.5l-1.8.7a7 7 0 0 0-1.7-1L13.2 2a1 1 0 0 0-1-.8h-3.4a1 1 0 0 0-1 .8l-.3 1.9a7 7 0 0 0-1.7 1l-1.8-.7a1 1 0 0 0-1.2.5L1.4 7.5a1 1 0 0 0 .4 1.3l1.6 1a6.9 6.9 0 0 0 0 2l-1.6 1a1 1 0 0 0-.4 1.3l1.7 2.8a1 1 0 0 0 1.2.5l1.8-.7a7 7 0 0 0 1.7 1l.3 1.9a1 1 0 0 0 1 .8h3.4a1 1 0 0 0 1-.8l.3-1.9a7 7 0 0 0 1.7-1l1.8.7a1 1 0 0 0 1.2-.5l1.6-2.8a1 1 0 0 0-.4-1.3ZM10.5 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z" />
   ),
+  insights: (
+    <path d="M4 20V10h3v10H4Zm6.5 0V4h3v16h-3ZM17 20v-7h3v7h-3Z" />
+  ),
 };
 
 function Icon({ name }) {
@@ -33,6 +39,7 @@ function Icon({ name }) {
 
 export default function FolderNav({ collapsed, onToggle }) {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const mark = "/cipher-mark-blue.png";
 
   return (
@@ -42,7 +49,7 @@ export default function FolderNav({ collapsed, onToggle }) {
         {!collapsed && (
           <div>
             <div className="folder-nav-title">Klaro</div>
-            <div className="folder-nav-sub">Mauritius registry check</div>
+            <div className="folder-nav-sub">{t("nav.subtitle")}</div>
           </div>
         )}
       </div>
@@ -54,10 +61,10 @@ export default function FolderNav({ collapsed, onToggle }) {
               to={tab.to}
               end={tab.end}
               className={({ isActive }) => "folder-tab" + (isActive ? " active" : "")}
-              title={collapsed ? tab.label : undefined}
+              title={collapsed ? t(tab.labelKey) : undefined}
             >
               <Icon name={tab.icon} />
-              {!collapsed && <span>{tab.label}</span>}
+              {!collapsed && <span>{t(tab.labelKey)}</span>}
             </NavLink>
           </li>
         ))}
@@ -66,7 +73,7 @@ export default function FolderNav({ collapsed, onToggle }) {
       <div className="folder-nav-footer">
         {!collapsed && user?.role === "admin" && (
           <NavLink to="/admin" className="admin-nav-back admin-console-link">
-            Admin console →
+            {t("nav.adminConsole")}
           </NavLink>
         )}
         {!collapsed && user && (
@@ -74,14 +81,15 @@ export default function FolderNav({ collapsed, onToggle }) {
             {user.email}
           </div>
         )}
+        <LanguageSwitcher collapsed={collapsed} />
         <div className="folder-nav-footer-row">
           <button
             className={"btn btn-ghost" + (collapsed ? "" : " btn-block")}
             onClick={logout}
             type="button"
-            title={collapsed ? "Log out" : undefined}
+            title={collapsed ? t("nav.logout") : undefined}
           >
-            {collapsed ? "⎋" : "Log out"}
+            {collapsed ? "⎋" : t("nav.logout")}
           </button>
         </div>
       </div>

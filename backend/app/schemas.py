@@ -95,13 +95,32 @@ class CheckCreate(BaseModel):
         return self
 
 
+class EvidenceItem(BaseModel):
+    """
+    One piece of evidence behind a verdict, structured so a frontend
+    can render a real evidence list (type, human-readable description,
+    severity) without needing its own hardcoded mapping of internal
+    flag codes to labels — that mapping already exists server-side
+    (see app/routers/checks.py's _INDICATOR_DESCRIPTIONS) and is reused
+    to build this list, rather than duplicated on the client.
+    """
+    category: str = Field(description='"registry", "indicator", "domain", or "phone"')
+    code: str = Field(description="A stable internal identifier, e.g. \"requests_otp\" or \"domain_mismatch\"")
+    description: str = Field(description="A human-readable explanation of this specific piece of evidence")
+    severity: str = Field(description='"info", "suspicious", or "high_risk"')
+
+
 class CheckOut(BaseModel):
     id: int
     message_text: str
     claimed_sender: Optional[str]
+    sender_auto_detected: bool = False
+    sender_detection_source_text: Optional[str] = None
+    detected_language: str = "en"
     registry_match_status: str
     registry_matched_entity: Optional[str]
     registry_match_score: Optional[float]
+    registry_status_detail: Optional[str] = None
     ai_risk_score: Optional[float]
     ai_flags: Optional[List[str]]
     ai_explanation: Optional[str]
@@ -109,6 +128,7 @@ class CheckOut(BaseModel):
     overall_verdict: str
     user_feedback: Optional[str] = None
     repeat_sender_summary: Optional[str] = None
+    evidence: List[EvidenceItem] = Field(default_factory=list)
     created_at: datetime
 
     class Config:
@@ -117,6 +137,17 @@ class CheckOut(BaseModel):
 
 class CheckFeedbackIn(BaseModel):
     is_correct: bool = Field(description="True if the verdict was correct, false if it was wrong")
+
+
+class CheckSummary(BaseModel):
+    total_checks: int
+    safe_count: int
+    suspicious_count: int
+    high_risk_count: int
+    checks_with_feedback: int
+    feedback_marked_correct: int
+    feedback_marked_incorrect: int
+    most_checked_senders: List[dict]
 
 
 # ---------------------------------------------------------------------------
@@ -190,3 +221,58 @@ class AdminLoginAttemptOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# Education companion (app/routers/education.py) — chat, daily advice, quizzes
+# ---------------------------------------------------------------------------
+
+class DailyAdviceOut(BaseModel):
+    title: str
+    body: str
+    category: str
+    is_personalized: bool = Field(
+        description="True if this topic was selected based on the user's own past quiz mistakes, "
+                    "rather than plain rotation — see app/education_ai.py's select_daily_advice_topic."
+    )
+
+
+class EducationChatIn(BaseModel):
+    message: str = Field(min_length=1, max_length=1000)
+
+
+class EducationChatMessageOut(BaseModel):
+    id: int
+    role: str
+    content: str
+    created_at: datetime
+    is_ai_generated: bool = Field(
+        default=False,
+        description="False today — every reply is a deterministic stand-in (see app/education_ai.py). "
+                    "Will become True once the real local model is wired in, so the frontend can show "
+                    "this distinction honestly rather than implying a full AI conversation exists today.",
+    )
+
+    class Config:
+        from_attributes = True
+
+
+class QuizQuestionOut(BaseModel):
+    id: int
+    prompt: str
+    options: List[dict]
+    category: str
+    source: str
+
+    class Config:
+        from_attributes = True
+
+
+class QuizAnswerIn(BaseModel):
+    selected_option_id: str
+
+
+class QuizAnswerOut(BaseModel):
+    was_correct: bool
+    correct_option_id: str
+    explanation: str

@@ -13,6 +13,7 @@ import Check from "./pages/Check";
 import Community from "./pages/Community";
 import CaseLog from "./pages/CaseLog";
 import CheckDetail from "./pages/CheckDetail";
+import Insights from "./pages/Insights";
 import Settings from "./pages/Settings";
 import AdminOverview from "./pages/admin/Overview";
 import AdminCheckExplorer from "./pages/admin/CheckExplorer";
@@ -59,6 +60,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <CheckDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/insights"
+          element={
+            <ProtectedRoute>
+              <Insights />
             </ProtectedRoute>
           }
         />
