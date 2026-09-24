@@ -3,3 +3,4 @@ backend/app/__pycache__/
 **/__pycache__/
 *.pyc
 backend/fraudlens.db
+frontend/node_modules/
